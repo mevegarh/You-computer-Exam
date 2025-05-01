@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Online Exam App</title>
+  <style>
+    /* Global Reset */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&w=1350&q=80')
+                  no-repeat center/cover;
+      display: flex; justify-content: center; align-items: center;
+      min-height: 100vh; padding: 20px;
+      color: #333;
+    }
+    .container {
+      background: rgba(255,255,255,0.95);
+      border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      width: 100%; max-width: 600px; padding: 30px;
+    }
+    h1,h2 { text-align: center; color: #1a237e; margin-bottom: 20px; }
+    .hidden { display: none; }
+    .btn {
+      background: #1a237e; color: #fff; border: none;
+      border-radius: 8px; padding: 12px; font-size: 16px;
+      cursor: pointer; width: 100%; margin-top: 15px;
+      transition: background .3s;
+    }
+    .btn:hover { background: #283593; }
+    input, select {
+      width: 100%; padding: 10px; margin: 8px 0 20px;
+      border: 1px solid #ccc; border-radius: 6px;
+      font-size: 14px;
+    }
+    .question {
+      background: #f5f5f5; padding: 15px; border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .question strong { display: block; margin-bottom: 10px; }
+    .option {
+      display: flex; align-items: center; margin: 6px 0;
+    }
+    .option input {
+      margin-right: 0; /* Align checkbox left */
+      border: 2px solid #1a237e; /* Optional: Add border to checkbox */
+      margin-left: 0; /* No space on the left of checkbox */
+    }
+    .option label {
+      margin-left: 0; /* Remove margin to make label touch checkbox */
+      margin-right: 10px; /* Small space between checkbox and label */
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>My School Exam</h1>
+
+    <!-- 1. How It Works -->
+    <div id="how-it-works">
+      <h2>How It Works</h2>
+      <p>1. Register yourself.<br>
+         2. Select your class & exam.<br>
+         3. Answer the questions.<br>
+         4. Submit and see your result.</p>
+      <button class="btn" id="btn-get-started">Let’s Get Started</button>
+    </div>
+
+    <!-- 2. Registration -->
+    <div id="registration" class="hidden">
+      <h2>Register Details</h2>
+      <input type="text" id="student-name" placeholder="Your full name">
+      <select id="student-class">
+        <option  value="">Select class</option>
+        <option value="9">Class 9</option>
+        <option value="10">Class 10</option>
+        <option value="11">Class 11</option>
+        <option value="12">Class 12</option>
+      </select>
+      <select id="exam-type">
+        <option value="">Select Exam</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="js">JavaScript</option>
+        <option value="web">Web Development</option>
+        <option value="python">Python Programming</option>
+        <option value="data">Data Science</option>
+      </select>
+      <button class="btn" id="btn-start-exam">Start Exam</button>
+    </div>
+
+    <!-- 3. Exam Screen -->
+    <div id="exam-screen" class="hidden">
+      <h2>Exam: <span id="exam-name-display"></span></h2>
+      <form id="exam-form">
+        <div id="questions-container"></div>
+        <button class="btn" type="submit">Submit Exam</button>
+      </form>
+    </div>
+
+    <!-- 4. Result Screen -->
+    <div id="result-screen" class="hidden">
+      <h2>Result</h2>
+      <p id="score-display"></p>
+      <button class="btn" id="btn-go-back">Go Back</button>
+    </div>
+  </div>
+
+  <script>
+    const questionBank = {
+      html: [
+        { q:"1. What does HTML stand for?", opts:["Hyper Text Markup Language","Home Tool Markup Language"], ans:0 },
+        { q:"2. Largest heading tag?", opts:["&lt;h1&gt;","&lt;head&gt;"], ans:0 },
+        { q:"3. Create hyperlink?", opts:["&lt;a href='url'&gt;","&lt;link&gt;"], ans:0 },
+        { q:"4. Ordered list tag?", opts:["&lt;ol&gt;","&lt;ul&gt;"], ans:0 },
+        { q:"5. Paragraph tag?", opts:["&lt;p&gt;","&lt;para&gt;"], ans:0 },
+        { q:"6. Embed image?", opts:["&lt;img src&gt;","&lt;image&gt;"], ans:0 },
+        { q:"7. Inline style attr?", opts:["style","class"], ans:0 },
+        { q:"8. Line break tag?", opts:["&lt;br&gt;","&lt;lb&gt;"], ans:0 },
+        { q:"9. Comment syntax?", opts:["&lt;!-- --&gt;","//"], ans:0 },
+        { q:"10. Root element?", opts:["&lt;html&gt;","&lt;body&gt;"], ans:0 },
+        { q:"11. Table row tag?", opts:["&lt;tr&gt;","&lt;td&gt;"], ans:0 },
+        { q:"12. Metadata tag?", opts:["&lt;meta&gt;","&lt;head&gt;"], ans:0 },
+        { q:"13. New tab attr?", opts:["target='_blank'","new='tab'"], ans:0 },
+        { q:"14. Group form elems?", opts:["&lt;fieldset&gt;","&lt;group&gt;"], ans:0 },
+        { q:"15. List item tag?", opts:["&lt;li&gt;","&lt;item&gt;"], ans:0 }
+      ],
+      css: [
+        { q:"1. What does CSS stand for?", opts:["Cascading Style Sheets","Computer Style Sheets"], ans:0 },
+        { q:"2. External CSS link?", opts:["&lt;link rel&gt;","&lt;style&gt;"], ans:0 },
+        { q:"3. Change text color?", opts:["color","font-color"], ans:0 },
+        { q:"4. Center block?", opts:["margin:0 auto","text-align:center"], ans:0 },
+        { q:"5. Inner spacing?", opts:["padding","margin"], ans:0 },
+        { q:"6. Relative unit?", opts:["em","px"], ans:0 },
+        { q:"7. Class selector?", opts:[".class","#class"], ans:0 },
+        { q:"8. Font size prop?", opts:["font-size","text-size"], ans:0 },
+        { q:"9. Background image?", opts:["background-image","img-src"], ans:0 },
+        { q:"10. Flex container?", opts:["display:flex","display:block"], ans:0 },
+        { q:"11. Add shadow?", opts:["box-shadow","text-shadow"], ans:0 },
+        { q:"12. Bold text?", opts:["font-weight:bold","font-style:bold"], ans:0 },
+        { q:"13. Opacity prop?", opts:["opacity","visibility"], ans:0 },
+        { q:"14. Inline-block?", opts:["display:inline-block","display:inline"], ans:0 },
+        { q:"15. Hover pseudo?", opts:[":hover",":mouse-over"], ans:0 }
+      ],
+      js: [
+        { q:"1. Who made JS?", opts:["Netscape","Microsoft"], ans:0 },
+        { q:"2. Declare var ES6?", opts:["let x","var x"], ans:0 },
+        { q:"3. Single comment?", opts:["//","/* */"], ans:0 },
+        { q:"4. Function syntax?", opts:["function f()","def f()"], ans:0 },
+        { q:"5. String→int?", opts:["parseInt()","Number()"], ans:0 },
+        { q:"6. Push to array?", opts:["push()","pop()"], ans:0 },
+        { q:"7. Strict equals?", opts:["===","=="], ans:0 },
+        { q:"8. Console log?", opts:["console.log()","alert()"], ans:0 },
+        { q:"9. Click event?", opts:["onclick","onpress"], ans:0 },
+        { q:"10. Get by ID?", opts:["getElementById","querySelector"], ans:0 },
+        { q:"11. Arrow func?", opts:["()=>","->"], ans:0 },
+        { q:"12. NaN means?", opts:["Not a Number","Null"], ans:0 },
+        { q:"13. Loop array?", opts:["forEach()","map()"], ans:0 },
+        { q:"14. Create obj?", opts:["{}","new Object()"], ans:0 },
+        { q:"15. Const keyword?", opts:["const","let"], ans:0 }
+      ],
+      web: [
+        { q:"1. HTTP = ?", opts:["HyperText Transfer Protocol","Home Protocol"], ans:0 },
+        { q:"2. URL = ?", opts:["Uniform Resource Locator","Universal Locator"], ans:0 },
+        { q:"3. HTTPS port?", opts:["443","80"], ans:0 },
+        { q:"4. REST means?", opts:["Representational State Transfer","Remote Service"], ans:0 },
+        { q:"5. 200 code?", opts:["OK","Error"], ans:0 },
+        { q:"6. AJAX use?", opts:["Async requests","Sync"], ans:0 },
+        { q:"7. JSON header?", opts:["application/json","text/html"], ans:0 },
+        { q:"8. CORS = ?", opts:["Cross-Origin Resource Sharing","Security"], ans:0 },
+        { q:"9. Real-time web?", opts:["WebSocket","FTP"], ans:0 },
+        { q:"10. Responsive meta?", opts:["&lt;meta name='viewport'&gt;","&lt;responsive&gt;"], ans:0 },
+        { q:"11. CDN = ?", opts:["Content Delivery Network","Data Network"], ans:0 },
+        { q:"12. Minify tool?", opts:["UglifyJS","JSBeautifier"], ans:0 },
+        { q:"13. Cookie is?", opts:["Small data","Plugin"], ans:0 },
+        { q:"14. SSL = ?", opts:["Secure Sockets Layer","Simple Layer"], ans:0 },
+        { q:"15. Fetch data?", opts:["fetch()","get()"], ans:0 }
+      ],
+      python: [
+        { q:"1. Python type?", opts:["High-level","Low-level"], ans:0 },
+        { q:"2. Comment start?", opts:["#","//"], ans:0 },
+        { q:"3. Print?", opts:["print()","echo()"], ans:0 },
+        { q:"4. List syntax?", opts:["[]","()"], ans:0 },
+        { q:"5. Define func?", opts:["def","function"], ans:0 },
+        { q:"6. Block delimiter?", opts:[":",";"], ans:0 },
+        { q:"7. Import?", opts:["import","include"], ans:0 },
+        { q:"8. Bool type?", opts:["bool","bit"], ans:0 },
+        { q:"9. Read file?", opts:["open('r')","open('w')"], ans:0 },
+        { q:"10. Tuple?", opts:["()","[]"], ans:0 },
+        { q:"11. Loop seq?", opts:["for","while"], ans:0 },
+        { q:"12. Exception?", opts:["try/except","catch"], ans:0 },
+        { q:"13. List comp?", opts:["[x for x in y]","{x}"], ans:0 },
+        { q:"14. Length?", opts:["len()","size()"], ans:0 },
+        { q:"15. PIP?", opts:["installer","compiler"], ans:0 }
+      ],
+      data: [
+        { q:"1. DS uses?", opts:["Statistics","Cooking"], ans:0 },
+        { q:"2. DS language?", opts:["Python","HTML"], ans:0 },
+        { q:"3. DataFrame?", opts:["2D data","Image"], ans:0 },
+        { q:"4. Plot lib?", opts:["matplotlib","express"], ans:0 },
+        { q:"5. Clustering?", opts:["Grouping","Sorting"], ans:0 },
+        { q:"6. Supervised?", opts:["With labels","No labels"], ans:0 },
+        { q:"7. Unsupervised?", opts:["Without labels","With labels"], ans:0 },
+        { q:"8. Machine Learning?", opts:["Statistical model","Program"], ans:0 },
+        { q:"9. Algorithm?", opts:["Set of rules","Program"], ans:0 },
+        { q:"10. Model performance?", opts:["Speed","Accuracy"], ans:0 },
+        { q:"11. Data scape?", opts:["Data ecosystem","Art"], ans:0 },
+        { q:"12. Tensor?", opts:["Array","Matrix"], ans:0 },
+        { q:"13. Cloud tools?", opts:["AWS","Google"], ans:0 },
+        { q:"14. Data train?", opts:["Train data","Train"], ans:0 },
+        { q:"15. Analytics?", opts:["Analysis","Trend"], ans:0 }
+      ]
+    };
+
+    let currentExam = '';
+    let currentQuestions = [];
+    let currentAnswers = [];
+    let score = 0;
+    
+    // Initialize DOM elements
+    const howItWorksSection = document.getElementById('how-it-works');
+    const registrationSection = document.getElementById('registration');
+    const examScreenSection = document.getElementById('exam-screen');
+    const resultScreenSection = document.getElementById('result-screen');
+    const examForm = document.getElementById('exam-form');
+    const questionsContainer = document.getElementById('questions-container');
+    const btnGetStarted = document.getElementById('btn-get-started');
+    const btnStartExam = document.getElementById('btn-start-exam');
+    const btnGoBack = document.getElementById('btn-go-back');
+    const examNameDisplay = document.getElementById('exam-name-display');
+    const scoreDisplay = document.getElementById('score-display');
+    
+    // Event Listeners
+    btnGetStarted.addEventListener('click', () => {
+      howItWorksSection.classList.add('hidden');
+      registrationSection.classList.remove('hidden');
+    });
+
+    btnStartExam.addEventListener('click', () => {
+      const studentName = document.getElementById('student-name').value;
+      const studentClass = document.getElementById('student-class').value;
+      const examType = document.getElementById('exam-type').value;
+
+      currentExam = examType;
+      currentQuestions = questionBank[examType];
+      currentAnswers = new Array(currentQuestions.length).fill(null);
+
+      registrationSection.classList.add('hidden');
+      examScreenSection.classList.remove('hidden');
+      
+      examNameDisplay.textContent = examType.toUpperCase();
+      
+      // Display Questions
+      questionsContainer.innerHTML = '';
+      currentQuestions.forEach((q, index) => {
+        const questionElement = document.createElement('div');
+        questionElement.classList.add('question');
+        
+        const questionTitle = document.createElement('strong');
+        questionTitle.textContent = q.q;
+        questionElement.appendChild(questionTitle);
+        
+        q.opts.forEach((opt, i) => {
+          const optionElement = document.createElement('div');
+          optionElement.classList.add('option');
+          
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.id = `question-${index}-option-${i}`;
+          checkbox.addEventListener('change', () => {
+            currentAnswers[index] = i;
+          });
+          
+          const label = document.createElement('label');
+          label.setAttribute('for', checkbox.id);
+          label.textContent = opt;
+          
+          optionElement.appendChild(checkbox);
+          optionElement.appendChild(label);
+          questionElement.appendChild(optionElement);
+        });
+        
+        questionsContainer.appendChild(questionElement);
+      });
+    });
+
+    btnGoBack.addEventListener('click', () => {
+      resultScreenSection.classList.add('hidden');
+      registrationSection.classList.remove('hidden');
+    });
+
+    examForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      score = currentAnswers.reduce((acc, ans, index) => {
+        if (ans === currentQuestions[index].ans) acc++;
+        return acc;
+      }, 0);
+      
+      scoreDisplay.textContent = `You scored ${score} out of ${currentQuestions.length}`;
+      examScreenSection.classList.add('hidden');
+      resultScreenSection.classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
